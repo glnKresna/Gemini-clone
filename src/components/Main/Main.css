@@ -15,7 +15,7 @@
 }
 
 .icon-size{
-    width: 48px;
+    width: 36px;
     height: auto;
     border-radius: 50%;
 }
@@ -113,7 +113,7 @@
     gap: 15px;
 }
 
-.main .botto-info{
+.main .bottom-info{
     font-size: 13px;
     margin: 15px auto;
     text-align: center;
