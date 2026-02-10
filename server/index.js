@@ -20,12 +20,13 @@ app.get("/health", (req, res) => {
     res.json({ status: "ok", message: "Server is alive 🫀" });
 });
 
+
 // Chat endpoint
 app.post("/api/chat", async (req, res) => {
     try{
-        const {message} = req.body;
+        const {prompt} = req.body;
 
-        if (!message) {
+        if (!prompt) {
             return res.status(400).json({error: "Message is required"});
         }
 
@@ -33,13 +34,26 @@ app.post("/api/chat", async (req, res) => {
             model: "gemini-2.5-flash",
         });
 
-        const result = await model.generateContent(message);
-        const reply = result.response.text();
+        const result = await model.generateContent(prompt);
+        const reply = await result.response.text();
 
         res.json({reply});
     } catch (err) {
-        console.error(err);
-        res.status(500).json({error: "Internal Server Error. Gemini had a meltdown 💥"});
+        // Gemini quota / rate limit
+        if (err.status === 429) {
+            console.warn("⚠️ Gemini rate limit hit (429):", err.errorDetails);
+
+            return res.status(429).json({
+                reply: "⚠️ Rate limit hit. Please wait a bit before sending another prompt."
+            });
+        }
+
+        // Any other Gemini / server error
+        console.error("❌ Gemini server error (500):", err);
+
+        res.status(500).json({
+            reply: "❌ Internal server error"
+        });
     }
 });
 
