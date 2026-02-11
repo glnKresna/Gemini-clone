@@ -12,37 +12,62 @@ const ContextProvider = (props) => {
     const [resultData, setResultData] = useState("");
     const [messages, setMessages] = useState([]);
 
-    const onSent = async () => {
-        if (!input.trim() || loading) return;
+    // Typing effect functionality
+    const streamText = (index, nextWord) => {
+        setTimeout(function () {
+            setMessages(prev => {
+                const newMessages = [...prev];
+                const lastMsg = newMessages[newMessages.length - 1];
+                
+                lastMsg.content += nextWord;
+                
+                return newMessages;
+            });
+        }, 20 * index); // 20ms delay per word
+    }
+
+    // User to AI message flow
+    const onSent = async (prompt) => {
+        // 1. Handle Input & Reset State
+        const finalInput = prompt || input;
+        setInput(""); // Clear input immediately so it doesn't get stuck
+        setResultData("");
+        setLoading(true);
+        setShowResult(true);
+        
+        // 2. Add USER message to chat history
+        setMessages(prev => [...prev, { role: "user", content: finalInput }]);
+        
+        // 3. Add a placeholder for AI response
+        setMessages(prev => [...prev, { role: "model", content: "" }]);
 
         try {
-            setLoading(true);
-            setShowResult(true);
+            // 4. API Call
+            // returns an object like { reply: "..." }
+            const response = await runChat(finalInput); 
 
-            setMessages(prev => [
-                ...prev,
-                { role: "user", content: input }
-            ]);
+            // 5. The Streaming Magic (Simulated)
+            // FIX: Access 'response.reply' instead of just 'response'
+            let responseArray = response.reply.split(" "); 
+            
+            for (let i = 0; i < responseArray.length; i++) {
+                const nextWord = responseArray[i];
+                streamText(i, nextWord + " ");
+            }
 
-            const data = await runChat(input);
-
-            setMessages(prev => [
-                ...prev,
-                { role: "ai", content: data.reply }
-            ]);
-
-        } catch (err) {
-            console.error(err);
-            setMessages(prev => [
-                ...prev,
-                { role: "ai", content: "Something went wrong 😬" }
-            ]);
+        } catch (error) {
+            console.error("Error in onSent:", error);
+            // Handle error visually in chat
+            setMessages(prev => {
+                const newMessages = [...prev];
+                // Update the last "empty" model message to show error
+                newMessages[newMessages.length - 1].content = "Error: Could not fetch response.";
+                return newMessages;
+            });
         } finally {
-            setLoading(false);
-            setInput("");
+            setLoading(false); // Ensure loading stops even if there's an error
         }
     };
-
 
     const contextValue = {
         prevPrompt,
