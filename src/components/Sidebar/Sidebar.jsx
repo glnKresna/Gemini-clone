@@ -13,7 +13,7 @@ const Sidebar = () => {
     }
 
     return (
-        <div className='sidebar'>
+        <div className={`sidebar ${extended ? 'extended' : ''}`}>
             <div className="top">
                 <img onClick={() => setExtended(prev => !prev)} className='menu' src={assets.menu_icon} alt="" />
                 
@@ -25,7 +25,6 @@ const Sidebar = () => {
                 {extended ? (
                     <div className="recent">
                         <p className="recent-title">Recent</p>
-                        
                         {prevPrompts.map((item, index) => {
                             return (
                                 <div onClick={() => loadChat(item.id)} className="recent-entry" key={index}>
