@@ -5,6 +5,8 @@ import { Context } from '../../context/Context';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import TextareaAutosize from 'react-textarea-autosize';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const Main = () => {
     const {onSent, recentPrompt, showResult, loading, resultData, input, setInput, messages} = useContext(Context);
@@ -61,30 +63,46 @@ const Main = () => {
                     </div>
                     </>
                     : <div className='result'>
-                        {/* Message components */}
                         {messages.map((msg, index) => (
                             <div key={index} className={`message ${msg.role}`}>
                                 <img src={msg.role === "user" ? assets.user_icon : assets.gemini_icon} alt=""/>
-
+                                
                                 <div className="message-content">
-                                    <ReactMarkdown remarkPlugins={remarkGfm}>
-                                    {msg.content}
-                                    </ReactMarkdown>
+                                    {/* 1. CHECK: Is this an AI message that is still empty (loading)? */}
+                                    {msg.role === "model" && msg.content.length === 0 ? (
+                                        <div className="loader">
+                                            <hr />
+                                        </div>
+                                    ) : (
+                                    /* 2. ELSE: It has text (or is user), so render Markdown */
+                                        <ReactMarkdown 
+                                            remarkPlugins={[remarkGfm]}
+                                            components={{
+                                                code({node, inline, className, children, ...props}) {
+                                                    const match = /language-(\w+)/.exec(className || '')
+                                                    return !inline && match ? (
+                                                        <SyntaxHighlighter
+                                                            style={vscDarkPlus}
+                                                            language={match[1]}
+                                                            PreTag="div"
+                                                            {...props}
+                                                        >
+                                                            {String(children).replace(/\n$/, '')}
+                                                        </SyntaxHighlighter>
+                                                    ) : (
+                                                        <code className={className} {...props}>
+                                                            {children}
+                                                        </code>
+                                                    )
+                                                }
+                                            }}
+                                        >
+                                            {msg.content}
+                                        </ReactMarkdown>
+                                    )}
                                 </div>
                             </div>
                         ))}
-
-                        {/* Loader */}
-                        {loading && (
-                            <div className="message assistant">
-                                <img src={assets.gemini_icon} alt="" />
-                                <div className="message-content loading">
-                                    <div className="loader">
-                                        <hr />
-                                    </div>
-                                </div>
-                            </div>
-                        )}
 
                         {/* End-of-chat anchor */}
                         <div ref={messageEndRef}> </div>
@@ -93,7 +111,20 @@ const Main = () => {
 
                 <div className="main-bottom">
                     <div className="search-box">
-                        <TextareaAutosize className="search-input" onChange={(e)=>setInput(e.target.value)} value={input} type="text" placeholder='Enter prompt here'/>
+                        <TextareaAutosize 
+                            className="search-input" 
+                            onChange={(e)=>setInput(e.target.value)} 
+                            value={input} type="text" 
+                            placeholder='Enter prompt here'
+                            minRows={1}
+                            maxRows={3}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    if (input.trim()) onSent();
+                                }
+                            }}
+                        />
 
                         <div>
                             <img src={assets.gallery_icon} alt="" />

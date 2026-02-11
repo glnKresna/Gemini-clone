@@ -130,10 +130,8 @@
 .result {
     padding: 0px 5%;
     max-height: 70vh;
-    overflow-y: scroll;
-    max-height: 70vh;
     overflow-y: auto;
-    scroll-behavior: auto;
+    scroll-behavior: smooth;
 }
 
 .result img {
@@ -211,8 +209,8 @@
     padding: 12px;
     border-radius: 8px;
     overflow-x: auto;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace; /* Added font for code look */
-    margin: 10px 0; /* Adds spacing around code blocks */
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    margin: 10px 0;
 }
 
 .message-content code {
