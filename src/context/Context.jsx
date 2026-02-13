@@ -67,6 +67,9 @@ const ContextProvider = (props) => {
             setCurrentChatId(chatId);
         }
 
+        // Capture history BEFORE adding the new messages
+        const currentHistory = [...messages];
+
         const userMessage = { role: "user", content: finalInput };
         
         let updatedMsgs = [...messages, userMessage]; 
@@ -77,7 +80,8 @@ const ContextProvider = (props) => {
         setMessages(updatedMsgs);
 
         try {
-            const response = await runChat(finalInput);
+            // Pass the captured history to the service
+            const response = await runChat(finalInput, currentHistory);
             
             saveToHistory(chatId, updatedMsgs);
 
