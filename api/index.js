@@ -66,7 +66,11 @@ app.post("/api/chat", async (req, res) => {
     }
 });
 
-// Server status
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
+// Server status (only listen on port if running locally)
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+    });
+}
+
+export default app;
